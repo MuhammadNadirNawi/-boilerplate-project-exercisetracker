@@ -2,16 +2,128 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 require('dotenv').config()
+const mongoose = require("mongoose");
+const bodyParser = require('body-parser');
+
+mongoose.set("strictQuery", false);
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+mongoose.connection.on('connected', () => {
+  console.log('Mongoose is connected');
+});
 
 app.use(cors())
 app.use(express.static('public'))
+app.use(bodyParser.urlencoded({extended: false}))
+
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
 
 
+const userSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    require: true,
+  },
+    description: {
+    type: String,
+  },
+  duration: {
+    type: Number,
+  },
+  date: {
+    type: String,
+  }
+})
 
+// const logSchema = new mongoose.Schema({
+//   description: {
+//     type: String,
+//     require: true,
+//   },
+//   duration: {
+//     type: Number,
+//     require: true
+//   },
+//   date: {
+//     type: Date,
+//     default: Date.toString()
+//   }
+// })
 
+const Users = mongoose.model("Users", userSchema)
+// const Logs = mongoose.model("Logs", logSchema)
+
+app.post("/api/users", (req, res) => {
+  
+  const name = req.body.username
+
+  const newUser = new Users({
+    username: name
+  });
+
+  newUser.save((err, user) => {
+    if(err){
+      res.json(err)
+    }
+    else(
+      res.json({username: user.username, _id: user._id})
+    )
+  })
+ 
+})
+
+app.get("/api/users", (req, res) => {
+  Users.find((err, data) => {
+    if (err){
+      res.json(err)
+    }
+    else{
+      res.json(data)
+    }
+  })
+})
+
+app.post("/api/users/:id/exercises", (req, res)=> {
+
+  const id = req.body[":_id"]
+  const desc = req.body.description
+  const time = req.body.duration
+  const dateString = req.body.date
+  console.log(dateString)
+  const date = new Date(dateString).toDateString();
+  const dateNow = new Date().toDateString();
+  // const date = new Date(dateString).toDateString
+  // res.params.id = id
+
+  if (req.body.date) {
+    Users.findByIdAndUpdate({_id: id}, {description: desc, duration: time, date: date}, (err, data) => {
+      if(err){
+        res.json(err)
+      }
+      else(
+        res.json(data)
+      )
+   })
+  }
+  else{
+     Users.findByIdAndUpdate({_id: id}, {description: desc, duration: time, date: dateNow}, (err, data) => {
+      if(err){
+        res.json(err)
+      }
+      else(
+        res.json(data)
+      )
+   })
+  }
+
+ 
+
+})
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
