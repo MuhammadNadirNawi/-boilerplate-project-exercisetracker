@@ -99,9 +99,9 @@ app.post("/api/users/:id/exercises", (req, res)=> {
   const dateNow = new Date().toDateString();
   // const date = new Date(dateString).toDateString
   // res.params.id = id
-
-  if (req.body.date) {
-    Users.findByIdAndUpdate({_id: id}, {description: desc, duration: time, date: date}, (err, data) => {
+  // console.log(req.body.date == true)
+  if (req.body.date && req.body.date.length > 0) {
+    Users.findByIdAndUpdate({_id: id}, {description: desc, duration: time, date: date}, {new: true}, (err, data) => {
       if(err){
         res.json(err)
       }
@@ -111,7 +111,7 @@ app.post("/api/users/:id/exercises", (req, res)=> {
    })
   }
   else{
-     Users.findByIdAndUpdate({_id: id}, {description: desc, duration: time, date: dateNow}, (err, data) => {
+     Users.findByIdAndUpdate({_id: id}, {description: desc, duration: time, date: dateNow}, {new: true}, (err, data) => {
       if(err){
         res.json(err)
       }
