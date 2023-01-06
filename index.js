@@ -106,7 +106,7 @@ app.post("/api/users/:id/exercises", (req, res)=> {
         res.json(err)
       }
       else(
-        res.json(data)
+        res.json({_id: data._id, username: data.username, date: data.date, duration: data.duration, description: data.description})
       )
    })
   }
@@ -116,7 +116,7 @@ app.post("/api/users/:id/exercises", (req, res)=> {
         res.json(err)
       }
       else(
-        res.json(data)
+        res.json({_id: data._id, username: data.username, date: data.date, duration: data.duration, description: data.description})
       )
    })
   }
