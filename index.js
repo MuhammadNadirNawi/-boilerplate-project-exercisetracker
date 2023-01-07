@@ -217,6 +217,13 @@ app.get("/api/users/:id/logs", (req, res) => {
   const id = req.params.id
   const {from, to, limit} = req.query
   console.log(from)
+  console.log(to)
+  // const dateFrom = new Date(from).toDateString()
+  // const df = new Date(Date.parse(dateFrom))
+  // console.log(dateFrom)
+  // const dateTo = new Date(to).toDateString()
+  // const tf = new Date(Date.parse(dateTo))
+  // console.log(dateTo)
   // const fromDate = new Date(from).toDateString();
   // const toDate = new Date(to).toDateString();
   // console.log(fromDate)
@@ -249,6 +256,7 @@ app.get("/api/users/:id/logs", (req, res) => {
           res.json(err)
         }
         else {
+          // console.log(log[0].date= new Date(log[0].date).toDateString())
           res.json({
             username: user.username,
             count: log.length,
@@ -281,11 +289,15 @@ app.get("/api/users/:id/logs", (req, res) => {
       //     res.json(log)
       //   }
       // })
-      Logs.find({user: id, date: { $gte: from, $lt: to }}).select({user: 0, _id: 0, __v:0}).exec((err, log) => {
+      Logs.find({user: id, date: { $gte: from, $lt: to }}).limit(limit).select({user: 0, _id: 0, __v:0}).exec((err, log) => {
         if(err) {
           res.json(err)
         }
         else {
+          for (let i = 0; i < log.length; i++) {
+              log[i].date = new Date(log[i].date).toDateString();
+          }
+          // console.log(log)
           res.json({
             username: user.username,
             count: log.length,
