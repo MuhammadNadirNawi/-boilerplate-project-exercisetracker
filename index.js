@@ -183,6 +183,7 @@ app.post("/api/users/:id/exercises", (req, res)=> {
       description: desc,
       duration: time,
       date: dateNow,
+      user: user._id
     })
   
     newLog.save((err,log) => {
@@ -207,20 +208,49 @@ app.post("/api/users/:id/exercises", (req, res)=> {
   });
   }
 
- app.get("/api/users/:id/logs", (req, res) => {
-  const id = req.params.id
+ 
+})
 
-  Users.findById({_id: id}).populate('log').exec((err, data) => {
+app.get("/api/users/:id/logs", (req, res) => {
+  const id = req.params.id
+  console.log(id)
+  Users.findById({_id: id}, (err, user) => {
     if (err) {
       res.json(err)
     }
-    else{
-      res.json(data)
-    }
+    // Logs.find({user: id}, (err, log) => {
+    //   if(err) {
+    //     res.json(err)
+    //   }
+    //   else{
+    //     // res.json({
+    //     //   username: user.username,
+    //     //   _id: user._id,
+    //     //   log: [{
+    //     //     description: log.description,
+    //     //     duration: log.duration,
+    //     //     date: log.date
+    //     //   }]
+    //     // })
+    //     res.json(log)
+    //   }
+    // })
+    Logs.find({user: id}).select({user: 0, _id: 0, __v:0}).exec((err, log) => {
+      if(err) {
+        res.json(err)
+      }
+      else {
+        res.json({
+          username: user.username,
+          count: log.length,
+          _id: user._id,
+          log: [log]
+        })
+      }
+    })
   })
- })
 
-})
+ })
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
