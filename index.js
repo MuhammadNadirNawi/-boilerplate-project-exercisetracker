@@ -106,7 +106,8 @@ app.post("/api/users/:id/exercises", (req, res)=> {
   console.log(dateString)
   const date_ = new Date(dateString).toDateString();
   console.log(date_)
-  const dateNow = new Date().toDateString();
+  const now = new Date();
+  const dateNow = now.toISOString().slice(0, 10);
   // const date = new Date(dateString).toDateString
   // res.params.id = id
   // console.log(req.body.date == true)
@@ -139,7 +140,8 @@ app.post("/api/users/:id/exercises", (req, res)=> {
       const newLog = new Logs({
         description: desc,
         duration: time,
-        date: date_,
+        date: dateString,
+        user: user._id
       })
     
       newLog.save((err,log) => {
@@ -147,7 +149,7 @@ app.post("/api/users/:id/exercises", (req, res)=> {
           res.json(err)
         }
         else{
-          res.json({username: user.username, description: log.description, duration: log.duration, date: log.date, _id: user._id})
+          res.json({username: user.username, description: log.description, duration: log.duration, date: new Date(log.date).toDateString(), _id: user._id})
 
           // user.log.push(log);
           // user.save((err) => {
@@ -191,7 +193,7 @@ app.post("/api/users/:id/exercises", (req, res)=> {
         res.json(err)
       }
       else{
-        res.json({username: user.username, description: log.description, duration: log.duration, date: log.date, _id: user._id})
+        res.json({username: user.username, description: log.description, duration: log.duration, date: new Date(log.date).toDateString(), _id: user._id})
 
         // user.log.push(log);
         // user.save((err) => {
@@ -213,44 +215,91 @@ app.post("/api/users/:id/exercises", (req, res)=> {
 
 app.get("/api/users/:id/logs", (req, res) => {
   const id = req.params.id
+  const {from, to, limit} = req.query
+  console.log(from)
+  // const fromDate = new Date(from).toDateString();
+  // const toDate = new Date(to).toDateString();
+  // console.log(fromDate)
+  console.log(Object.keys(req.query).length)
   console.log(id)
-  Users.findById({_id: id}, (err, user) => {
-    if (err) {
-      res.json(err)
-    }
-    // Logs.find({user: id}, (err, log) => {
-    //   if(err) {
-    //     res.json(err)
-    //   }
-    //   else{
-    //     // res.json({
-    //     //   username: user.username,
-    //     //   _id: user._id,
-    //     //   log: [{
-    //     //     description: log.description,
-    //     //     duration: log.duration,
-    //     //     date: log.date
-    //     //   }]
-    //     // })
-    //     res.json(log)
-    //   }
-    // })
-    Logs.find({user: id}).select({user: 0, _id: 0, __v:0}).exec((err, log) => {
-      if(err) {
+  if(Object.keys(req.query).length == 0) {
+    Users.findById({_id: id,}, (err, user) => {
+      if (err) {
         res.json(err)
       }
-      else {
-        res.json({
-          username: user.username,
-          count: log.length,
-          _id: user._id,
-          log: log
-        })
-      }
+      // Logs.find({user: id}, (err, log) => {
+      //   if(err) {
+      //     res.json(err)
+      //   }
+      //   else{
+      //     // res.json({
+      //     //   username: user.username,
+      //     //   _id: user._id,
+      //     //   log: [{
+      //     //     description: log.description,
+      //     //     duration: log.duration,
+      //     //     date: log.date
+      //     //   }]
+      //     // })
+      //     res.json(log)
+      //   }
+      // })
+      Logs.find({user: id,}).select({user: 0, _id: 0, __v:0}).exec((err, log) => {
+        if(err) {
+          res.json(err)
+        }
+        else {
+          res.json({
+            username: user.username,
+            count: log.length,
+            _id: user._id,
+            log: log
+          })
+        }
+      })
     })
-  })
+  }
+  else {
+    Users.findById({_id: id,}, (err, user) => {
+      if (err) {
+        res.json(err)
+      }
+      // Logs.find({user: id}, (err, log) => {
+      //   if(err) {
+      //     res.json(err)
+      //   }
+      //   else{
+      //     // res.json({
+      //     //   username: user.username,
+      //     //   _id: user._id,
+      //     //   log: [{
+      //     //     description: log.description,
+      //     //     duration: log.duration,
+      //     //     date: log.date
+      //     //   }]
+      //     // })
+      //     res.json(log)
+      //   }
+      // })
+      Logs.find({user: id, date: { $gte: from, $lt: to }}).select({user: 0, _id: 0, __v:0}).exec((err, log) => {
+        if(err) {
+          res.json(err)
+        }
+        else {
+          res.json({
+            username: user.username,
+            count: log.length,
+            _id: user._id,
+            log: log
+          })
+        }
+      })
+    })
 
+  }
  })
+
+ 
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
