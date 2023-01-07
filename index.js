@@ -244,7 +244,7 @@ app.get("/api/users/:id/logs", (req, res) => {
           username: user.username,
           count: log.length,
           _id: user._id,
-          log: [log]
+          log: log
         })
       }
     })
