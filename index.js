@@ -216,6 +216,8 @@ app.post("/api/users/:id/exercises", (req, res)=> {
 app.get("/api/users/:id/logs", (req, res) => {
   const id = req.params.id
   const {from, to, limit} = req.query
+  console.log(req.query.from != null)
+  console.log(req.query.limit != null)
   console.log(from)
   console.log(to)
   // const dateFrom = new Date(from).toDateString()
@@ -268,45 +270,89 @@ app.get("/api/users/:id/logs", (req, res) => {
     })
   }
   else {
-    Users.findById({_id: id,}, (err, user) => {
-      if (err) {
-        res.json(err)
-      }
-      // Logs.find({user: id}, (err, log) => {
-      //   if(err) {
-      //     res.json(err)
-      //   }
-      //   else{
-      //     // res.json({
-      //     //   username: user.username,
-      //     //   _id: user._id,
-      //     //   log: [{
-      //     //     description: log.description,
-      //     //     duration: log.duration,
-      //     //     date: log.date
-      //     //   }]
-      //     // })
-      //     res.json(log)
-      //   }
-      // })
-      Logs.find({user: id, date: { $gte: from, $lt: to }}).limit(limit).select({user: 0, _id: 0, __v:0}).exec((err, log) => {
-        if(err) {
+    if(req.query.from != null) {
+      Users.findById({_id: id,}, (err, user) => {
+        if (err) {
           res.json(err)
         }
-        else {
-          for (let i = 0; i < log.length; i++) {
-              log[i].date = new Date(log[i].date).toDateString();
+        // Logs.find({user: id}, (err, log) => {
+        //   if(err) {
+        //     res.json(err)
+        //   }
+        //   else{
+        //     // res.json({
+        //     //   username: user.username,
+        //     //   _id: user._id,
+        //     //   log: [{
+        //     //     description: log.description,
+        //     //     duration: log.duration,
+        //     //     date: log.date
+        //     //   }]
+        //     // })
+        //     res.json(log)
+        //   }
+        // })
+        Logs.find({user: id, date: { $gte: from, $lt: to }}).limit(limit).select({user: 0, _id: 0, __v:0}).exec((err, log) => {
+          if(err) {
+            res.json(err)
           }
-          // console.log(log)
-          res.json({
-            username: user.username,
-            count: log.length,
-            _id: user._id,
-            log: log
-          })
-        }
+          else {
+            for (let i = 0; i < log.length; i++) {
+                log[i].date = new Date(log[i].date).toDateString();
+            }
+            // console.log(log)
+            res.json({
+              username: user.username,
+              count: log.length,
+              _id: user._id,
+              log: log
+            })
+          }
+        })
       })
-    })
+    }
+    else{
+      Users.findById({_id: id,}, (err, user) => {
+        if (err) {
+          res.json(err)
+        }
+        // Logs.find({user: id}, (err, log) => {
+        //   if(err) {
+        //     res.json(err)
+        //   }
+        //   else{
+        //     // res.json({
+        //     //   username: user.username,
+        //     //   _id: user._id,
+        //     //   log: [{
+        //     //     description: log.description,
+        //     //     duration: log.duration,
+        //     //     date: log.date
+        //     //   }]
+        //     // })
+        //     res.json(log)
+        //   }
+        // })
+        Logs.find({user: id}).limit(limit).select({user: 0, _id: 0, __v:0}).exec((err, log) => {
+          if(err) {
+            res.json(err)
+          }
+          else {
+            for (let i = 0; i < log.length; i++) {
+                log[i].date = new Date(log[i].date).toDateString();
+            }
+            // console.log(log)
+            res.json({
+              username: user.username,
+              count: log.length,
+              _id: user._id,
+              log: log
+            })
+          }
+        })
+      })
+    }
+    
 
   }
  })
