@@ -259,6 +259,10 @@ app.get("/api/users/:id/logs", (req, res) => {
         }
         else {
           // console.log(log[0].date= new Date(log[0].date).toDateString())
+          for (let i = 0; i < log.length; i++) {
+            log[i].date = new Date(log[i].date).toDateString();
+        }
+        // console.log(log)
           res.json({
             username: user.username,
             count: log.length,
