@@ -24,39 +24,43 @@ app.get('/', (req, res) => {
 });
 
 
+
+
+const logSchema = new mongoose.Schema({
+  description: {
+    type: String,
+    require: true,
+  },
+  duration: {
+    type: Number,
+    require: true
+  },
+  date: {
+    type: String,
+  },
+  user: { type:  mongoose.Types.ObjectId, ref: 'Users' },
+
+})
+
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
     require: true,
   },
-    description: {
-    type: String,
-  },
-  duration: {
-    type: Number,
-  },
-  date: {
-    type: String,
-  }
+  // log:[{ type:  mongoose.Types.ObjectId, ref: 'Logs' }]
+  //   description: {
+  //   type: String,
+  // },
+  // duration: {
+  //   type: Number,
+  // },
+  // date: {
+  //   type: String,
+  // }
 })
 
-// const logSchema = new mongoose.Schema({
-//   description: {
-//     type: String,
-//     require: true,
-//   },
-//   duration: {
-//     type: Number,
-//     require: true
-//   },
-//   date: {
-//     type: Date,
-//     default: Date.toString()
-//   }
-// })
-
 const Users = mongoose.model("Users", userSchema)
-// const Logs = mongoose.model("Logs", logSchema)
+const Logs = mongoose.model("Logs", logSchema)
 
 app.post("/api/users", (req, res) => {
   
@@ -72,6 +76,7 @@ app.post("/api/users", (req, res) => {
     }
     else(
       res.json({username: user.username, _id: user._id})
+      // res.json(user)
     )
   })
  
@@ -83,8 +88,11 @@ app.get("/api/users", (req, res) => {
       res.json(err)
     }
     else{
-      res.json(data)
-    }
+      // console.log(data.username)
+      // res.json({username: data.username, _id: data._id})    
+        res.json(data)
+    }   
+
   })
 })
 
@@ -95,33 +103,121 @@ app.post("/api/users/:id/exercises", (req, res)=> {
   const time = req.body.duration
   const dateString = req.body.date
   console.log(dateString)
-  const date = new Date(dateString).toDateString();
+  const date_ = new Date(dateString).toDateString();
+  console.log(date_)
   const dateNow = new Date().toDateString();
   // const date = new Date(dateString).toDateString
   // res.params.id = id
   // console.log(req.body.date == true)
   if (req.body.date && req.body.date.length > 0) {
-    Users.findByIdAndUpdate({_id: id}, {description: desc, duration: time, date: date}, {new: true}, (err, data) => {
-      if(err){
-        res.json(err)
-      }
-      else(
-        res.json({_id: data._id, username: data.username, date: data.date, duration: data.duration, description: data.description})
-      )
-   })
+  //   Users.findByIdAndUpdate({_id: id}, {description: desc, duration: time, date: date}, {new: true}, (err, data) => {
+  //     if(err){
+  //       res.json(err)
+  //     }
+  //     else(
+  //       res.json({_id: data._id, username: data.username, date: data.date, duration: data.duration, description: data.description})
+  //     )
+  //  })
+    // Users.findById({_id: id}, (err, user) => {
+    //   if (err) {
+    //     res.json(err)
+    //   }
+    //   else {
+    //     // const user = user.username
+    //     // console.log(user.username)
+        
+    //   }
+    // })
+    // const name = user.username
+
+    Users.findById({_id: id}, (err, user) => {
+      if (err) return handleError(err);
+      console.log(user)
+      // Create a new task
+      // const task = new Task({ name: 'My task', done: false });
+      const newLog = new Logs({
+        description: desc,
+        duration: time,
+        date: date_,
+      })
+    
+      newLog.save((err,log) => {
+        if (err){
+          res.json(err)
+        }
+        else{
+          res.json({username: user.username, description: log.description, duration: log.duration, date: log.date, _id: user._id})
+
+          // user.log.push(log);
+          // user.save((err) => {
+          //   if (err) return handleError(err);
+          // });
+        }
+      })
+    
+      // Add the task to the user's tasks array
+     
+    
+      // Save the user
+    
+    });
+
+       
   }
   else{
-     Users.findByIdAndUpdate({_id: id}, {description: desc, duration: time, date: dateNow}, {new: true}, (err, data) => {
-      if(err){
+  //    Users.findByIdAndUpdate({_id: id}, {description: desc, duration: time, date: dateNow}, {new: true}, (err, data) => {
+  //     if(err){
+  //       res.json(err)
+  //     }
+  //     else(
+  //       res.json({_id: data._id, username: data.username, date: data.date, duration: data.duration, description: data.description})
+  //     )
+  //  })
+  Users.findById({_id: id}, (err, user) => {
+    if (err) return handleError(err);
+    console.log(user)
+    // Create a new task
+    // const task = new Task({ name: 'My task', done: false });
+    const newLog = new Logs({
+      description: desc,
+      duration: time,
+      date: dateNow,
+    })
+  
+    newLog.save((err,log) => {
+      if (err){
         res.json(err)
       }
-      else(
-        res.json({_id: data._id, username: data.username, date: data.date, duration: data.duration, description: data.description})
-      )
-   })
+      else{
+        res.json({username: user.username, description: log.description, duration: log.duration, date: log.date, _id: user._id})
+
+        // user.log.push(log);
+        // user.save((err) => {
+        //   if (err) return handleError(err);
+        // });
+      }
+    })
+  
+    // Add the task to the user's tasks array
+   
+  
+    // Save the user
+  
+  });
   }
 
- 
+ app.get("/api/users/:id/logs", (req, res) => {
+  const id = req.params.id
+
+  Users.findById({_id: id}).populate('log').exec((err, data) => {
+    if (err) {
+      res.json(err)
+    }
+    else{
+      res.json(data)
+    }
+  })
+ })
 
 })
 
