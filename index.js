@@ -98,7 +98,8 @@ app.get("/api/users", (req, res) => {
 
 app.post("/api/users/:id/exercises", (req, res)=> {
 
-  const id = req.body[":_id"]
+  // const id = req.body[":_id"]
+  const id =   req.params.id 
   const desc = req.body.description
   const time = req.body.duration
   const dateString = req.body.date
